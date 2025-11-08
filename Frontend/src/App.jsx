@@ -8,34 +8,50 @@ import CallPage from './Pages/CallPage.jsx'
 import ChatPage from './Pages/ChatPage.jsx'
 import OnboardingPage from './Pages/OnbordingPage.jsx'
 import { useQuery } from "@tanstack/react-query"
-import { axiosInstance } from './lib/axios.js'
+import PageLoder from './Components/PageLoder.jsx'
+import { getAuthUser } from './lib/api.js'
+import useAuthUser from './hooks/useAuthUser.js'
+import Layout from './Components/Layout.jsx'
+import { useThemeStore } from './store/useThemeStore.js'
+import ProtectedRoute from './Components/ProtectedRoute.jsx'
 
 
 const App = () => {
-  const { data:authData , isLoading, error } = useQuery({
-    queryKey: ["authUser"],
-    queryFn: async () => {
-      const res = await axiosInstance.get('/auth/me')
-      return res.data
-    },
-    retry: false,
-  })
+  const { isLoading, error, authUser } = useAuthUser();
+  // select only the theme string from the zustand store
+  const theme = useThemeStore((s) => s.theme)
 
-  const authUser = authData?.user
+  const isAuthenticated = Boolean(authUser);
+  const isOnboarded = authUser?.isOnboarded;
 
-  // if (isLoading) return <div>Loading...</div>
-  // if (error) return <div>Failed to load user</div>
+
+
+
+  if (isLoading) return <PageLoder />
+  //TODO: Add better error handling page && UI
+  if (error) return <div>Failed to load user</div>
 
   return (
-    <div>
+    <div data-theme={theme} className='h-screen'>
       <Routes>
-        <Route path='/' element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-        <Route path='/signup' element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
-        <Route path='/login' element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path='/notification' element={authUser ? <NotificationPage /> : <Navigate to="/login" />} />
-        <Route path='/call' element={authUser ? <CallPage /> : <Navigate to="/login" />} />
-        <Route path='/chat' element={authUser ? <ChatPage /> : <Navigate to="/login" />} />
-        <Route path='/onboarding' element={authUser ? <OnboardingPage /> : <Navigate to="/login" />} />
+        <Route path="/" element={isAuthenticated && isOnboarded ? (<Layout showSidebar={true}>
+          <ProtectedRoute> <HomePage /> </ProtectedRoute> </Layout>) : (<Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />)} />
+        <Route path='/signup' element={!isAuthenticated ? <SignUpPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} />} />
+        <Route path='/login' element={!isAuthenticated ? <LoginPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} />} />
+        <Route path='/notification' element={isAuthenticated ? <NotificationPage /> : <Navigate to="/login" />} />
+        <Route path='/call' element={isAuthenticated ? <CallPage /> : <Navigate to="/login" />} />
+        <Route path='/chat' element={isAuthenticated ? <ChatPage /> : <Navigate to="/login" />} />
+        <Route
+          path='/onboarding'
+          element={
+            isAuthenticated ?
+              (!isOnboarded ?
+                (<OnboardingPage />) :
+                (<Navigate to="/" />)
+              ) :
+              (<Navigate to="/login" />)
+          }
+        />
       </Routes>
     </div>
   )

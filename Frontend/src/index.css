@@ -2,6 +2,3 @@
 @plugin "daisyui" {
   themes: all;
 }
-body{
-  color: #000;
-}

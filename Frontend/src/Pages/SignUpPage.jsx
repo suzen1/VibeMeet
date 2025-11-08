@@ -1,32 +1,34 @@
+//ERROR: FIX ALL FELDES EMAIL AND MORE
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { axiosInstance } from '../lib/axios.js';
+import { signup } from '../lib/api.js';
+import useSignUp from '../hooks/useSignUp.js';
 
 const SignUpPage = () => {
   const [signupData, setSignupData] = useState({
-    FullName: "",
+    Fullname: "",
     email: "",
     password: "",
   });
 
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { mutate, isPending, error } = useMutation({
-    mutationFn: async (signupData) => {
-      const response = await axiosInstance.post("/auth/signup", signupData);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
-      navigate("/login"); // Redirect after success
-    },
-  });
+  // const queryClient = useQueryClient();
+  // const { mutate:signupMutetion, isPending, error } = useMutation({
+  //   mutationFn: signup,
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ["authUser"] });
+  //     navigate("/"); // Redirect after success
+  //   },
+  // });
+
+  const { isPending, error, signupMutation } = useSignUp();
 
   const handleSignup = (e) => {
     e.preventDefault();
-    mutate(signupData);
+    signupMutation(signupData);
   };
 
   return (
@@ -59,9 +61,9 @@ const SignUpPage = () => {
                   type="text"
                   placeholder="John Doe"
                   className="input input-bordered w-full"
-                  value={signupData.FullName}
+                  value={signupData.Fullname}
                   onChange={(e) =>
-                    setSignupData({ ...signupData, FullName: e.target.value })
+                    setSignupData({ ...signupData, Fullname: e.target.value })
                   }
                   required
                 />
@@ -106,8 +108,12 @@ const SignUpPage = () => {
 
               {error && <p className="text-error text-sm">{error.message}</p>}
 
-              <button className="btn btn-primary w-full" type="submit" disabled={isPending}>
-                {isPending ? "Signing up..." : "Create Account"}
+              <button className="btn btn-primary w-full" type="submit" >
+                {isPending ? (<>
+                  <samp className='loading loading-spinner loading-xs'></samp>
+                  Loading..
+                </>
+                ) : ("Create Account")}
               </button>
 
               <div className="text-center mt-4">

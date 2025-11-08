@@ -2,7 +2,7 @@ import { upsertStreamUser } from "../lib/Stream.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-export async function singup(req, res) {
+export async function signup(req, res) {
   try {
     const { email, password, Fullname } = req.body;
 
@@ -50,7 +50,7 @@ export async function singup(req, res) {
     }
 
     // 5️⃣ Generate JWT
-    const token = jwt.sign({ id: User._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -145,6 +145,7 @@ export async function onboarding(req, res) {
       location,
       nativeLanguage,
       learningLanguage,
+       isOnboarded: true,
     }, { new: true });
 
     if (!updateUser) {

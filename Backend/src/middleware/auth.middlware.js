@@ -18,7 +18,7 @@ export const protectRoute = async (req, res, next) => {
         }
         req.user = user;
         next()
-    } catch (error) {
-        console.log("error", error);
-    }
+    }catch (error) {
+      res.status(401).json({ message: "Not authorized" });
+  }
 }
